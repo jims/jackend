@@ -1,6 +1,7 @@
 (ns jackend.main
-	(:gen-class))
+  (:require jackend.handler)
+  (:gen-class))
 
-(defn- main
-	[& args]
-	(println "test"))
+(defn -main
+  [& args]
+  (jackend.handler/run-server 3030))
