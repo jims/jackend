@@ -9,7 +9,8 @@
                  [ring/ring-json "0.2.0"]]
   :plugins [[lein-ring "0.8.10"]]
   :main jackend.main
-  :ring {:handler jackend.handler/service-handler}
+  :aot [jackend.main]
+  :ring {:handler jackend.core/service-handler}
   :jvm-opts [~(str "-Djava.library.path=lib;" (System/getProperty "java.library.path"))]
   :profiles
   {:dev {:dependencies [[javax.servlet/servlet-api "2.5"]

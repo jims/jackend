@@ -1,7 +1,9 @@
 (ns jackend.main
-  (:require jackend.handler)
+  (:require [jackend.core :as jackend]
+            [anchors.routes :as anchors])
   (:gen-class))
 
 (defn -main
   [& args]
-  (jackend.handler/run-server 3030))
+  (jackend/add-service anchors/routes)
+  (jackend/run-server 3000))
