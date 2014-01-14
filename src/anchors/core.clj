@@ -1,4 +1,4 @@
-(ns anchors.routes
+(ns anchors.core
   (:use ring.util.response)
   (:require [compojure.handler :as handler]
             [compojure.route :as route]

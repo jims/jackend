@@ -1,6 +1,6 @@
 (ns jackend.main
   (:require [jackend.core :as jackend]
-            [anchors.routes :as anchors])
+            [anchors.core :as anchors])
   (:gen-class))
 
 (defn -main
