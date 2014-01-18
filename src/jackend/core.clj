@@ -19,9 +19,8 @@
   (route/not-found {:status 404 :body "Not supported."}))
 
 (def service-handler
-  (-> 
-    (handler/api all-routes)
-    ring.middleware.json/wrap-json-response))
+  (-> (handler/api all-routes)
+      ring.middleware.json/wrap-json-response))
 
 (defn run-server [port]
   (ring/run-jetty service-handler {:port port}))
