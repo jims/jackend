@@ -30,10 +30,10 @@
   ([key default]
     (when-not (string? key)
       (throw (IllegalArgumentException. "key must be a string")))
-    (when-not (map? default)
+    (when-not (or (map? default) (nil? default))
       (throw (IllegalArgumentException. "The default value must be a map")))
     (if-let [value (.get *kcabinet* (.getBytes key))]
-      (parse-smile value)
+      (parse-smile value keyword)
       default)))
 
 (defn put
