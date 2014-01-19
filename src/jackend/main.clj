@@ -3,7 +3,10 @@
             [anchors.core :as anchors])
   (:gen-class))
 
+(jackend/add-service anchors/routes)
+
+(def handler jackend/service-handler)
+
 (defn -main
   [& args]
-  (jackend/add-service anchors/routes)
   (jackend/run-server 3000))
