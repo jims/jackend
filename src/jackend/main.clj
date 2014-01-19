@@ -9,4 +9,4 @@
 
 (defn -main
   [& args]
-  (jackend/run-server 3000))
+  (jackend/run-server (get args 0 3000)))
