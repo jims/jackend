@@ -4,7 +4,7 @@
             cheshire.core)
   (:refer-clojure :exclude [get put])
   (:refer cheshire.core :only [generate-smile parse-smile])
-  (:import (kyotocabinet DB)))
+  (:import (kyotocabinet DB Visitor)))
 
 (defn open-cabinet [cabinet]
   (let [dbmode (cabinet :mode (bit-or DB/OREADER DB/OWRITER DB/OCREATE))
@@ -22,8 +22,21 @@
       (with-open [notused# *kcabinet*]
         (do ~@forms))))
 
-(defn
-  get
+(defn cursor-records [c]
+  (let [key (.get_key_str c false)]
+    (if-let [value (.get_value c true)]
+      (cons {key (parse-smile value)} (lazy-seq (cursor-records c)))
+      (do (.disable c) '()))))
+
+(defn get-like
+  "Get all keys that contains the supplied pattern."
+  [pattern]
+  (let [cursor (.cursor *kcabinet*)]
+      (.jump cursor)
+      (-> (cursor-records cursor)
+        (filter #(true)))))
+
+(defn get
   ""
   ([key]
     (get key nil))
@@ -33,7 +46,7 @@
     (when-not (or (map? default) (nil? default))
       (throw (IllegalArgumentException. "The default value must be a map")))
     (if-let [value (.get *kcabinet* (.getBytes key))]
-      (parse-smile value keyword)
+      (parse-smile value keyword) 
       default)))
 
 (defn put
