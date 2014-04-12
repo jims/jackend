@@ -17,16 +17,4 @@
 (defroutes routes
   (GET "/songs"
     []
-    (db-response ()))
-  (GET ["/songs/:id" :id #"\w+"]
-    [amount]
-    (db-response
-      (-> (db/get "anchors-balance" defaults)
-          (update-in [:consumed] (partial + (Integer/parseInt amount)))
-          (update-db))))
-  (GET ["/songs/wish/:id" :id #"\w+"]
-    [amount]
-    (db-response
-      (-> (db/get "anchors-balance" defaults)
-          (update-in [:bought] (partial + (Integer/parseInt amount)))
-          (update-db)))))
+    (db-response ())))
