@@ -34,10 +34,10 @@
       (with-open [notused# *kcabinet*]
         (do ~@forms))))
 
-(defn get-like
-  "Get all keys that contains the supplied pattern."
-  [pattern]
-  (check-scope "get-like")
+(defn get-all
+  "Gets a lazy sequance of all the records in the database."
+  []
+  (check-scope "get-all")
   (let [c (.cursor *kcabinet*)]
       (.jump c)
       (-> (cursor-records c))))

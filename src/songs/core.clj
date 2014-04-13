@@ -1,10 +1,9 @@
 (ns songs.core
   (:require [ring.util.response :refer [response]]
-            [compojure.core :refer [defroutes GET PUT]]
+            [compojure.core :refer [defroutes GET PUT POST]]
             [cabinet.core :as db]))
 
-(def database {:filename "songs.kch"})
-
+(def ^:private database {:filename "songs.kch"})
 (def ^:private defaults {:bought 0 :consumed 0})
 
 (defmacro db-response
@@ -12,9 +11,11 @@
   `(db/with-cabinet database
     (response (do ~@forms))))
 
-(def ^:private update-db (partial db/put "anchors-balance"))
-
 (defroutes routes
-  (GET "/songs"
-    []
-    (db-response ())))
+  (GET "/songs" []
+    (db-response (doall (db/get-all))))
+
+  (POST "/songs" {params :params}
+    (db-response 
+      (doseq [[key value] params]
+        (db/put (str key) value)))))

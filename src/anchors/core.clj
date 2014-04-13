@@ -18,12 +18,14 @@
   (GET "/anchor"
     []
     (db-response (db/get "anchors-balance" defaults)))
+
   (GET ["/anchor/drink/:amount" :amount #"[0-9]+"]
     [amount]
     (db-response
       (-> (db/get "anchors-balance" defaults)
           (update-in [:consumed] (partial + (Integer/parseInt amount)))
           (update-db))))
+  
   (GET ["/anchor/refill/:amount" :amount #"[0-9]+"]
     [amount]
     (db-response
