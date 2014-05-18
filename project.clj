@@ -10,7 +10,6 @@
   :main jackend.main
   :aot [jackend.main]
   :ring {:handler jackend.main/handler}
-  :jvm-opts [~(str "-Djava.library.path=lib;" (System/getProperty "java.library.path"))]
   :profiles
   {:dev {:dependencies [[javax.servlet/servlet-api "2.5"]
                         [ring-mock "0.1.5"]]}})
