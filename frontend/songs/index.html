@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Test</title>
+	<script src="http://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+	<script src="http://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.6.0/underscore-min.js"></script>
+	<script src="http://cdnjs.cloudflare.com/ajax/libs/typeahead.js/0.10.2/typeahead.bundle.min.js"></script>
+	<script type="text/javascript">
+		jQuery(function($) {
+			var getSongs = function() {
+				//var songsApi = "http://anchorsleft.com/songs";
+				var songsApi = "http://localhost:3000/songs";
+
+				return $.ajax({
+					url: songsApi,
+					method: 'GET',
+					dataType: 'json'});
+			};
+
+			var songs = [];
+			var options = [];
+
+			var poll;
+			poll = function() {
+				getSongs().done(function(resp) {
+					songs = resp;
+				});
+				setTimeout(poll, 5000);
+			}
+			poll();
+		});
+	</script>
+</head>
+<body>
+	<div id="asd">Hejsan</div>
+</body>
+</html>
