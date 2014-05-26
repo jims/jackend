@@ -2,36 +2,54 @@
 <html>
 <head>
 	<title>Test</title>
-	<script src="http://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
-	<script src="http://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.6.0/underscore-min.js"></script>
-	<script src="http://cdnjs.cloudflare.com/ajax/libs/typeahead.js/0.10.2/typeahead.bundle.min.js"></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.3.0-beta.10/angular.min.js"></script>
 	<script type="text/javascript">
-		jQuery(function($) {
-			var getSongs = function() {
-				//var songsApi = "http://anchorsleft.com/songs";
-				var songsApi = "http://localhost:3000/songs";
+		function SongsController($scope, $http) {
+			var songsApi = "http://localhost:3000/songs";
 
-				return $.ajax({
-					url: songsApi,
-					method: 'GET',
-					dataType: 'json'});
-			};
-
-			var songs = [];
-			var options = [];
+			$scope.songs = [];
 
 			var poll;
 			poll = function() {
-				getSongs().done(function(resp) {
-					songs = resp;
-				});
+				$http.get(songsApi, {responseType: "json"})
+					.success(function(data, status, headers, config) {
+						$scope.songs = data;
+					});
 				setTimeout(poll, 5000);
 			}
 			poll();
-		});
+
+			$scope.addSong = function() {
+				var mangleEntry = function(artist, track) {
+					return (artist + track).toLowerCase().replace(/[^\w\s]/g, "");
+				};
+
+				var artist = $scope.newArtist,
+					track = $scope.newTrack,
+					entryId = mangleEntry(artist, track);
+
+				var entry = {};
+				entry[entryId] = {artist: artist, track: track};
+				$http({method: "POST", url: songsApi, data: [entry], responseType: "json"});
+				//$scope.songs.push(entry);
+			}
+		}
 	</script>
 </head>
-<body>
-	<div id="asd">Hejsan</div>
+<body ng-app>
+	<div ng-controller="SongsController">
+		<div>
+			<form ng-submit="addSong()">
+				<input type="text" placeholder="Artist" ng-model="newArtist"/>
+				<input type="text" placeholder="Låt" ng-model="newTrack"/>
+				<input type="submit" value="Lägg till"/>
+			</form>
+		</div>
+		<ul>
+			<li ng-repeat="song in songs">
+				{{song}}
+			</li>
+		</ul>
+	</div>
 </body>
 </html>
