@@ -27,9 +27,20 @@
     (let [response (handler request)]
       (assoc-in response [:headers "Access-Control-Allow-Origin"] "*"))))
 
+(defn- wrap-handle-options-cors [handler]
+  (fn [request]
+    (if (= (:request-method request) :options)
+      (let [response (response {:status 200})]
+        (-> response
+          (assoc-in [:headers "Access-Control-Allow-Methods"] "GET, POST, PUT")
+          (assoc-in [:headers "Access-Control-Allow-Headers"] "Origin, X-Requested-With, Content-Type, Accept")))
+      (handler request))))
+
 (def service-handler
   (-> (handler/api all-routes)
+      (wrap-handle-options-cors)
       (wrap-allow-origin)
+      (ring.middleware.json/wrap-json-body)
       (ring.middleware.json/wrap-json-response)))
 
 (defn run-server [port]
