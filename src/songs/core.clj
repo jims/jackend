@@ -13,9 +13,10 @@
 
 (defroutes routes
   (GET "/songs" []
-    (db-response (doall (db/get-all))))
+    (db-response (apply merge-with #(%2) (db/get-all))))
 
-  (POST "/songs" {params :params}
-    (db-response 
-      (doseq [[key value] params]
-        (db/put (str key) value)))))
+  (POST "/songs" {params :body}
+    (do
+      (db-response 
+        (doseq [[key value] params]
+          (db/put (str key) value))))))
