@@ -19,6 +19,14 @@
 			}
 			poll();
 
+			$scope.searchArtist = function(artist) {
+				console.log("Search artist: " + artist);
+			}
+
+			$scope.searchTrack = function(track) {
+				console.log("Search track: " + track);
+			}
+
 			$scope.addSong = function() {
 				var mangleEntry = function(artist, track) {
 					return (artist + track).toLowerCase().replace(/[^\w\s]/g, "");
@@ -26,12 +34,14 @@
 
 				var artist = $scope.newArtist,
 					track = $scope.newTrack,
+					requestedBy = $scope.requestedBy,
 					entryId = mangleEntry(artist, track);
 
+				var song = {artist: artist, track: track, "requested-by": requestedBy};
 				var entry = {};
-				entry[entryId] = {artist: artist, track: track};
-				$http({method: "POST", url: songsApi, data: [entry], responseType: "json"});
-				//$scope.songs.push(entry);
+				entry[entryId] = song;
+				$http.post(songsApi, entry, {responseType: "json"});
+				$scope.songs[entryId] = song;
 			}
 		}
 	</script>
@@ -40,15 +50,18 @@
 	<div ng-controller="SongsController">
 		<div>
 			<form ng-submit="addSong()">
-				<input type="text" placeholder="Artist" ng-model="newArtist"/>
-				<input type="text" placeholder="Låt" ng-model="newTrack"/>
+				<input type="text" placeholder="Låt" ng-model="newTrack" ng-pattern="/\w+/" ng-change="searchTrack(newTrack)" required/>
+				<input type="text" placeholder="Artist" ng-model="newArtist" ng-pattern="/\w+/" ng-change="searchArtist(newArtist)" required/>
+				<input type="text" placeholder="Vem önskar?" ng-model="requestedBy" ng-pattern="/\w+/" required/>
 				<input type="submit" value="Lägg till"/>
 			</form>
 		</div>
-		<ul>
-			<li ng-repeat="song in songs">
-				{{song}}
-			</li>
+		<table>
+			<tr ng-repeat="song in songs">
+				<td>{{song.track}}</td>
+				<td>{{song.artist}}</td>
+				<td>{{song["requested-by"]}}</td>
+			</tr>
 		</ul>
 	</div>
 </body>
