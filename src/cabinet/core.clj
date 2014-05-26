@@ -18,7 +18,7 @@
         record {key (parse-smile value keyword)}]
     (if (.step c)
       (cons record (lazy-seq (cursor-records c)))
-      (do (.disable c) (list record)))))
+      (do (.disable c) (if-not (contains? record nil) [record])))))
 
 (defn open-cabinet [cabinet]
   (let [dbmode (cabinet :mode (bit-or DB/OREADER DB/OWRITER DB/OCREATE))
@@ -40,7 +40,7 @@
   (check-scope "get-all")
   (let [c (.cursor *kcabinet*)]
       (.jump c)
-      (-> (cursor-records c))))
+      (cursor-records c)))
 
 (defn get
   ""
