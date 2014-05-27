@@ -7,34 +7,44 @@
 	<link rel="stylesheet" type="text/css" href="http://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.1.1/css/bootstrap.css"/>
 	<script type="text/javascript">
 		var songs = angular.module('songs', ['ui.bootstrap']);
-		songs.controller("SongsController", function ($scope, $http) {
+		songs.controller("SongsController", function ($scope, $http, $sce) {
 			//var songsApi = "http://anchorsleft.com/songs";
 			var songsApi = "http://localhost:3000/songs";
 
 			$scope.songs = [];
+			$scope.spotifyTrackListUrl = "";
 
 			var poll;
 			poll = function() {
 				$http.get(songsApi, {responseType: "json"})
-					.success(function(data, status, headers, config) {
-						$scope.songs = data;
+					.success(function(songs, status, headers, config) {
+						if (songs == null)
+							return;
+
+						$scope.songs = songs;
+						var trackIds = Object.keys(songs).map(function(key) { return songs[key]['spotify-track-id']; }).join();
+						$scope.spotifyTrackListUrl = $sce.trustAsResourceUrl("https://embed.spotify.com/?uri=spotify:trackset:PREFEREDTITLE:" + trackIds);
 					});
 				setTimeout(poll, 5000);
 			}
 			poll();
 
-			$scope.searchArtist = function(artist) {
-				return $http.get("http://ws.spotify.com/search/1/artist.json", {params: {q: artist}})
-					.then(function(response) {
-						return response.data.artists;
-					});
-			}
-
 			$scope.searchTrack = function(track) {
 				return $http.get("http://ws.spotify.com/search/1/track.json", {params: {q: track}})
 					.then(function(response) {
-						return response.data.tracks;
+						var tracks = response.data.tracks.reduce(function(tracks, track) {
+							return tracks.concat(track.artists.map(function(artist) {
+								return { name: track.name + " - " + artist.name, track: track.name, artist: artist.name, href: track.href };
+							}));
+						}, []);
+						console.log(tracks);
+						return tracks;
 					});
+			}
+
+			var newTrack = null;
+			$scope.setNewTrack = function(model) {
+				newTrack = model;
 			}
 
 			$scope.addSong = function() {
@@ -42,15 +52,21 @@
 					return (artist + track).toLowerCase().replace(/[^\w]/g, "");
 				};
 
-				var artist = $scope.newArtist,
-					track = $scope.newTrack,
+				var track = newTrack.track,
+					artist = newTrack.artist
 					requestedBy = $scope.requestedBy,
 					entryId = mangleEntry(artist, track);
 
-				var song = {artist: artist, track: track, "requested-by": requestedBy};
+				var song = {
+					"artist": artist,
+					"track": track,
+					"requested-by": requestedBy,
+					"spotify-track-id": newTrack.href.split(":").pop()
+				};
 				var entry = {};
 				entry[entryId] = song;
 				$http.post(songsApi, entry, {responseType: "json"});
+				console.log(song);
 				$scope.songs[entryId] = song;
 			}
 		});
@@ -61,18 +77,15 @@
 		<div>
 			<form ng-submit="addSong()">
 				<input type="text"
-					typeahead-min-length="2"
 					ng-model="newTrack"
-					typeahead="track.name for track in searchTrack($viewValue)"
+					typeahead-on-select="setNewTrack($model)"
+					typeahead-min-length="2"
+					typeahead="track as track.name for track in searchTrack($viewValue)"
 					typeahead-wait-ms="300"
 					placeholder="Låt"
 					ng-pattern="/\w+/"
 					required/>
 				<input type="text"
-					typeahead-min-length="2"
-					ng-model="newArtist"
-					typeahead="artist.name for artist in searchArtist($viewValue)" typeahead-wait-ms="300" placeholder="Artist" ng-pattern="/\w+/" required/>
-					<input type="text"
 					placeholder="Vem önskar?"
 					ng-model="requestedBy"
 					ng-pattern="/\w+/"
@@ -86,7 +99,8 @@
 				<td>{{song.artist}}</td>
 				<td>{{song["requested-by"]}}</td>
 			</tr>
-		</ul>
+		</table>
+		<iframe ng-src="{{spotifyTrackListUrl}}" frameborder="0" allowtransparency="true"></iframe>
 	</div>
 </body>
 </html>
