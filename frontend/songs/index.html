@@ -2,9 +2,13 @@
 <html>
 <head>
 	<title>Test</title>
-	<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.3.0-beta.10/angular.min.js"></script>
+	<script src="http://cdnjs.cloudflare.com/ajax/libs/angular.js/1.3.0-beta.8/angular.min.js"></script>
+	<script src="http://cdnjs.cloudflare.com/ajax/libs/angular-ui-bootstrap/0.10.0/ui-bootstrap-tpls.min.js"></script>
+	<link rel="stylesheet" type="text/css" href="http://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.1.1/css/bootstrap.css"/>
 	<script type="text/javascript">
-		function SongsController($scope, $http) {
+		var songs = angular.module('songs', ['ui.bootstrap']);
+		songs.controller("SongsController", function ($scope, $http) {
+			//var songsApi = "http://anchorsleft.com/songs";
 			var songsApi = "http://localhost:3000/songs";
 
 			$scope.songs = [];
@@ -20,16 +24,22 @@
 			poll();
 
 			$scope.searchArtist = function(artist) {
-				console.log("Search artist: " + artist);
+				return $http.get("http://ws.spotify.com/search/1/artist.json", {params: {q: artist}})
+					.then(function(response) {
+						return response.data.artists;
+					});
 			}
 
 			$scope.searchTrack = function(track) {
-				console.log("Search track: " + track);
+				return $http.get("http://ws.spotify.com/search/1/track.json", {params: {q: track}})
+					.then(function(response) {
+						return response.data.tracks;
+					});
 			}
 
 			$scope.addSong = function() {
 				var mangleEntry = function(artist, track) {
-					return (artist + track).toLowerCase().replace(/[^\w\s]/g, "");
+					return (artist + track).toLowerCase().replace(/[^\w]/g, "");
 				};
 
 				var artist = $scope.newArtist,
@@ -43,17 +53,31 @@
 				$http.post(songsApi, entry, {responseType: "json"});
 				$scope.songs[entryId] = song;
 			}
-		}
+		});
 	</script>
 </head>
-<body ng-app>
+<body ng-app="songs">
 	<div ng-controller="SongsController">
 		<div>
 			<form ng-submit="addSong()">
-				<input type="text" placeholder="Låt" ng-model="newTrack" ng-pattern="/\w+/" ng-change="searchTrack(newTrack)" required/>
-				<input type="text" placeholder="Artist" ng-model="newArtist" ng-pattern="/\w+/" ng-change="searchArtist(newArtist)" required/>
-				<input type="text" placeholder="Vem önskar?" ng-model="requestedBy" ng-pattern="/\w+/" required/>
-				<input type="submit" value="Lägg till"/>
+				<input type="text"
+					typeahead-min-length="2"
+					ng-model="newTrack"
+					typeahead="track.name for track in searchTrack($viewValue)"
+					typeahead-wait-ms="300"
+					placeholder="Låt"
+					ng-pattern="/\w+/"
+					required/>
+				<input type="text"
+					typeahead-min-length="2"
+					ng-model="newArtist"
+					typeahead="artist.name for artist in searchArtist($viewValue)" typeahead-wait-ms="300" placeholder="Artist" ng-pattern="/\w+/" required/>
+					<input type="text"
+					placeholder="Vem önskar?"
+					ng-model="requestedBy"
+					ng-pattern="/\w+/"
+					required/>
+				<input class="btn btn-default" type="submit" value="Lägg till"/>
 			</form>
 		</div>
 		<table>
@@ -66,3 +90,4 @@
 	</div>
 </body>
 </html>
+ 
