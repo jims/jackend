@@ -7,6 +7,13 @@
 	<link rel="stylesheet" type="text/css" href="http://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.1.1/css/bootstrap.css"/>
 	<script type="text/javascript">
 		var songs = angular.module('songs', ['ui.bootstrap']);
+		songs.directive('focus', function() {
+			return function(scope, element, attrs) {
+				scope.$watch(attrs.focus, function (newValue) { 
+					scope.$eval(newValue) && element.focus();
+			 	}, true);
+			  };
+		});
 		songs.controller("SongsController", function ($scope, $http, $sce) {
 			//var songsApi = "http://anchorsleft.com/songs";
 			var songsApi = "http://localhost:3000/songs";
@@ -37,7 +44,6 @@
 								return { name: track.name + " - " + artist.name, track: track.name, artist: artist.name, href: track.href };
 							}));
 						}, []);
-						console.log(tracks);
 						return tracks;
 					});
 			}
@@ -66,39 +72,75 @@
 				var entry = {};
 				entry[entryId] = song;
 				$http.post(songsApi, entry, {responseType: "json"});
-				console.log(song);
 				$scope.songs[entryId] = song;
+				$scope.newTrack = null;
+				$scope.requestedBy = null;
 			}
 		});
 	</script>
+	<style type="text/css">
+		.song-list {
+			width: 100%;
+			line-height: 1.5em;
+		}
+
+		.song-list td {
+			padding: 5px;
+		}
+
+		.song-list thead input[type="text"] {
+			border-radius: 2px;
+			border: 1px solid #ddd;
+			width: 100%;
+			padding: 6px 12px;
+		}
+
+		.song-list .ruler div {
+			border-top: 1px solid #ddd;
+		}
+	</style>
 </head>
 <body ng-app="songs">
 	<div ng-controller="SongsController">
-		<div>
-			<form ng-submit="addSong()">
-				<input type="text"
-					ng-model="newTrack"
-					typeahead-on-select="setNewTrack($model)"
-					typeahead-min-length="2"
-					typeahead="track as track.name for track in searchTrack($viewValue)"
-					typeahead-wait-ms="300"
-					placeholder="Låt"
-					ng-pattern="/\w+/"
-					required/>
-				<input type="text"
-					placeholder="Vem önskar?"
-					ng-model="requestedBy"
-					ng-pattern="/\w+/"
-					required/>
-				<input class="btn btn-default" type="submit" value="Lägg till"/>
-			</form>
-		</div>
-		<table>
-			<tr ng-repeat="song in songs">
-				<td>{{song.track}}</td>
-				<td>{{song.artist}}</td>
-				<td>{{song["requested-by"]}}</td>
-			</tr>
+		<table class="song-list">
+			<thead>
+				<tr>
+					<td colspan="2">
+						<input type="text"
+							focus="newTrack == null"
+							ng-model="newTrack"
+							typeahead-on-select="setNewTrack($model)"
+							typeahead-min-length="2"
+							typeahead="track as track.name for track in searchTrack($viewValue)"
+							typeahead-wait-ms="300"
+							placeholder="Låt"
+							ng-pattern="/\w+/"
+							required/>
+					</td>
+					<td>
+						<input type="text"
+							placeholder="Vem önskar?"
+							ng-model="requestedBy"
+							ng-pattern="/\w+/"
+							required/>
+					</td>
+					<td>
+						<input ng-click="addSong()" class="btn btn-default" type="submit" value="Önska"/>
+					</td>
+				</tr>
+				<tr class="ruler">
+					<td><div></div></td>
+					<td><div></div></td>
+					<td colspan="2"><div></div></td>
+				</tr>
+			</thead>
+			<tbody>
+				<tr ng-repeat="song in songs">
+					<td>{{song.track}}</td>
+					<td>{{song.artist}}</td>
+					<td colspan="2">{{song["requested-by"]}}</td>
+				</tr>
+			</tbody>
 		</table>
 		<iframe ng-src="{{spotifyTrackListUrl}}" frameborder="0" allowtransparency="true"></iframe>
 	</div>
