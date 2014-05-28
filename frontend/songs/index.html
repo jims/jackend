@@ -18,15 +18,18 @@
 			//var songsApi = "http://anchorsleft.com/songs";
 			var songsApi = "http://localhost:3000/songs";
 
-			$scope.songs = [];
-			$scope.spotifyTrackListUrl = "";
+			$scope.songs = {};
+			$scope.spotifyTrackListUrl = "about:blank";
 
 			var poll;
 			poll = function() {
 				$http.get(songsApi, {responseType: "json"})
 					.success(function(songs, status, headers, config) {
-						if (songs == null)
+						if (songs == null) {
+							$scope.songs = {}
+							$scope.spotifyTrackListUrl = "about:blank";							
 							return;
+						}
 
 						$scope.songs = songs;
 						var trackIds = Object.keys(songs).map(function(key) { return songs[key]['spotify-track-id']; }).join();
